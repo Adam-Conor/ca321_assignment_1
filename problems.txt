@@ -1,2 +1,3 @@
 Trying to get argv into thread
 trying to get numbers into calc thread
+Trying to send signal
