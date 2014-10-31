@@ -20,30 +20,29 @@ typedef struct {
 static void * reader(void *val_in) {
 	values_t *val = val_in;
 	sigset_t set;
-	int sig;// = SIGUSR1;
 	
 	//set signal
 	sigemptyset(&set);
-	sigset(SIGUSR1, calculator);
+	//sigaddset(&set,SIGALRM);
+	sigset(SIGINT, calculator);
 	//sigsuspend(&set);
 
-	while(!feof(val->fp)) {
+	//alarm(7); causing seg fault
+
+	while(1) {//!feof(val->fp)) {
 		//read in the two ints
 		fscanf(val->fp, "%d %d", &val->x, &val->y);
 		
 		//print out valuesto be calculated
-		printf("Thread 1 submitting : %d %d\n", val->x, val->y); //print out the ints
+		printf("Thread 1 submitting : %d %d\n", val->x, val->y);
 
-		//signal to go here
 		//signal(SIGUSR1, NULL);
-		//wait for signal
-		//alarm(1);
-		signal(SIGUSR1,(void *)calculator);
+		kill(getpid(),SIGINT);
+		usleep(SLEEP);
 		//sigwait(&set, &sig);
 		sigsuspend(&set);
-		//pthread_kill(pthread_self(),SIGUSR1);
 		//sleep
-		usleep(SLEEP);
+		//usleep(SLEEP);
 	}
 
 	return((void *)NULL);
@@ -52,22 +51,24 @@ static void * reader(void *val_in) {
 static void * calculator(void *val_in) {
 	values_t *val = val_in;
 	sigset_t set;
-	int sig;
 
 	//set signal
 	sigemptyset(&set);
-	sigset(SIGALRM, reader);
+	//sigaddset(&set, SIGALRM);
+	sigset(SIGINT, reader);
 
 	while(1) {
 		//wait for signal
-		sigwait(&set, &sig);
-		//sigsuspend(&set);
+		//sigwait(&set, &sig);
+		sigsuspend(&set);
 		
 		//calculate 
 		printf("Thread 2 calculated : %d\n", val->x + val->y);
-		sigwait(&set, &sig);
+		//sigwait(&set, &sig);
 
 		//signal(SIGUSR1, NULL);
+		//alarm(1);
+		sigsuspend(&set);
 		//sleep
 		usleep(SLEEP);
 	}
@@ -93,8 +94,7 @@ static void * control(void *in) {
 	
 	//create threads
 	pthread_create(&read_t, NULL, &reader, (void *)&val);
-	pthread_create(&calc_t, NULL, &reader, (void *)&val);
-	alarm(1);
+	pthread_create(&calc_t, NULL, &calculator, (void *)&val);
 
 	//start threads
 	pthread_join(read_t, NULL);
@@ -107,7 +107,6 @@ static void * control(void *in) {
 
 int main(int arc, char *argv[]) {
 	pthread_t cont_t; //init thread
-	signal(SIGALRM, (void *)reader);
 
 	pthread_create(&cont_t, NULL, &control, (void *)argv); //create thread
 
