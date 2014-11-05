@@ -12,6 +12,7 @@
  * Fix condition var to end reader loop
  * Figure out how to signal other threads
  * Wew
+ * Get rand to assign in there
  */
 
 static void * reader(void *in);
@@ -23,11 +24,11 @@ typedef struct {
 	int x;
 	int y;
 	FILE *fp;
+	int randomSleep;
 } values_t;
 
 static void cancelThread(int signo) {
-	printf("Goodbye from Thread: %d\n", signo - 1);
-	pthread_kill(pthread_self(),SIGINT);
+	printf("Goodbye from Thread: %d\n", signo);
 }
 
 static void * reader(void *val_in) {
@@ -51,7 +52,8 @@ static void * reader(void *val_in) {
 		printf("Thread 1 submitting : %d %d\n", val->x, val->y);
 
 		//kill(getpid(),SIGUSR1);
-		usleep(SLEEP);
+		val->randomSleep = rand_r(SLEEP);
+		usleep(val->randomSleep);
 		//sigwait(&set, &sig);
 		//sigsuspend(&set);
 		//sleep
@@ -115,7 +117,6 @@ static void * control(void *in) {
 	//start threads
 	pthread_join(read_t, NULL);
 	pthread_join(calc_t, NULL);
-	pthread_exit(NULL);
 
 	//close file
 	fclose(val.fp);
