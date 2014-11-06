@@ -20,18 +20,17 @@ You are to write a C program that prints the sum of each pair of integers in a t
 
 Program requirements are as follows:
 
-One thread (the reader) reads a pair of integers from the input file and prints them to the screen.<br />
-Another thread (the calculator) then sums the numbers just loaded by the reader and prints the result to the screen.<br />
-The reader blocks while waiting for the calculator to print the latest result.<br />
-The calculator blocks while waiting for the reader to submit a pair of integers for addition.<br />
-Before reading the next pair of integers from the file, the reader sleeps for a random number of microseconds (up to 10000).
-After summing the latest two integers loaded by the reader, the calculator sleeps for a random number of microseconds (up to 10000).<br />
-A main thread coordinates the actions of the reader and calculator threads.<br />
-Unix signals are used for inter-thread communication and to avoid busy-waiting.<br />
-The main thread cancels the other threads once the last pair of integers has been summed.<br /> 
-The main thread cancels the other threads if a SIGINT is received.<br />
-Each cancelled thread prints out a farewell message as it exits.<br />
-A working solution would produce output like that shown here.<br />
+* One thread (the reader) reads a pair of integers from the input file and prints them to the screen.<br />
+* Another thread (the calculator) then sums the numbers just loaded by the reader and prints the result to the screen.<br />
+* The reader blocks while waiting for the calculator to print the latest result.<br />
+* The calculator blocks while waiting for the reader to submit a pair of integers for addition.<br />
+* Before reading the next pair of integers from the file, the reader sleeps for a random number of microseconds (up to 10000).
+* After summing the latest two integers loaded by the reader, the calculator sleeps for a random number of microseconds (up to 10000).<br />
+* A main thread coordinates the actions of the reader and calculator threads.<br />
+* Unix signals are used for inter-thread communication and to avoid busy-waiting.<br />
+* The main thread cancels the other threads once the last pair of integers has been summed.<br /> 
+* The main thread cancels the other threads if a SIGINT is received.<br />
+* Each cancelled thread prints out a farewell message as it exits.<br />
 
 <h4>Getting started</h4>
 
