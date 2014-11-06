@@ -31,6 +31,16 @@ static void cancelThread(int signo) {
 	printf("Goodbye from Thread: %d\n", signo);
 }
 
+static void getRandom(int* x) {
+	srand(time(NULL));
+	*x = rand_r() % SLEEP;
+}
+
+static void randomuSleep(int x) {
+	getRandom(&x);
+	usleep(x);
+}
+
 static void * reader(void *val_in) {
 	values_t *val = val_in;
 	sigset_t set;
@@ -39,8 +49,8 @@ static void * reader(void *val_in) {
 	//set signal
 	sigemptyset(&set);
 	sigaddset(&set,SIGUSR1);
-	sigaddset(&set,SIGINT);
-	sigset(SIGINT,cancelThread);
+	sigaddset(&set,SIGUSR2);
+	//sigset(SIGINT,cancelThread);
 	sigset(SIGUSR1, calculator);
 	//sigsuspend(&set);
 
@@ -51,16 +61,19 @@ static void * reader(void *val_in) {
 		//print out values to be calculated
 		printf("Thread 1 submitting : %d %d\n", val->x, val->y);
 
-		//kill(getpid(),SIGUSR1);
-		val->randomSleep = rand_r(SLEEP);
-		usleep(val->randomSleep);
-		//sigwait(&set, &sig);
+		kill(getpid(),SIGUSR1);
+
+		//getRandom(&val->randomSleep);
+		//usleep(val->randomSleep);
+		randomuSleep(val->randomSleep);
+
+		sigwait(&set, &sig);
 		//sigsuspend(&set);
 		//sleep
 		//usleep(SLEEP);
 	}
 
-	kill(pthread_self(),SIGINT);
+	//kill(pthread_self(),SIGINT);
 
 	return((void *)NULL);
 }//reader
@@ -72,7 +85,7 @@ static void * calculator(void *val_in) {
 
 	//set signal
 	sigemptyset(&set);
-	sigset(SIGUSR1, calculator);
+	sigset(SIGUSR2, reader);
 	sigaddset(&set, SIGUSR1);
 
 	while(1) {
@@ -82,9 +95,10 @@ static void * calculator(void *val_in) {
 		//calculate 
 		printf("Thread 2 calculated : %d\n", val->x + val->y);
 
-		//kill(getpid(),SIGINT);
-		//sleep
-		usleep(SLEEP);
+		kill(getpid(),SIGUSR2);
+		
+		//usleep(SLEEP);
+		randomuSleep(val->randomSleep);
 	}
 
 	return((void *)NULL);
