@@ -12,7 +12,6 @@
  * Fix condition var to end reader loop
  * Figure out how to signal other threads
  * Wew
- * Get rand to assign in there
  */
 
 static void * reader(void *in);
@@ -24,35 +23,36 @@ typedef struct {
 	int x;
 	int y;
 	FILE *fp;
+	pthread_t r;
+	pthread_t c;
 	int randomSleep;
 } values_t;
 
-static void cancelThread(int signo) {
-	printf("Goodbye from Thread: %d\n", signo);
+static void cancelThreads(int signo) {
+	printf("Goodbye from Thread 2");
 }
 
-static void getRandom(int* x) {
+static void getRandomSleep(int* x) {
 	srand(time(NULL));
 	*x = rand_r() % SLEEP;
-}
+}//generates a random sleep time
 
 static void randomuSleep(int x) {
-	getRandom(&x);
+	getRandomSleep(&x);
 	usleep(x);
-}
+}//generates a random uSleep
 
 static void * reader(void *val_in) {
+	sleep(1); //hack to fix seg fault????
 	values_t *val = val_in;
+	val->r = pthread_self();
 	sigset_t set;
 	int sig;
 
 	//set signal
 	sigemptyset(&set);
-	sigaddset(&set,SIGUSR1);
 	sigaddset(&set,SIGUSR2);
-	//sigset(SIGINT,cancelThread);
 	sigset(SIGUSR1, calculator);
-	//sigsuspend(&set);
 
 	while(!feof(val->fp)) {
 		//read in the two ints
@@ -61,63 +61,72 @@ static void * reader(void *val_in) {
 		//print out values to be calculated
 		printf("Thread 1 submitting : %d %d\n", val->x, val->y);
 
-		kill(getpid(),SIGUSR1);
+		//signal for signal
+		pthread_kill(val->c,SIGUSR1);
 
-		//getRandom(&val->randomSleep);
-		//usleep(val->randomSleep);
-		randomuSleep(val->randomSleep);
-
+		//wait
 		sigwait(&set, &sig);
-		//sigsuspend(&set);
+
 		//sleep
-		//usleep(SLEEP);
+		//randomuSleep(val->randomSleep);
+		sleep(1);
 	}
 
-	//kill(pthread_self(),SIGINT);
+	//sigwait(&set, &sig);
+
+	//printf("Goodbye from Thread 1");
+
+	//pthread_kill(val->c,SIGUSR1);
 
 	return((void *)NULL);
 }//reader
 
 static void * calculator(void *val_in) {
 	values_t *val = val_in;
+	val->c = pthread_self();
 	sigset_t set;
 	int sig;
 
 	//set signal
 	sigemptyset(&set);
 	sigset(SIGUSR2, reader);
+	//sigset(SIGINT,cancelThreads);
 	sigaddset(&set, SIGUSR1);
 
-	while(1) {
+	while(!feof(val->fp)) {
+		//randomuSleep(val->randomSleep);
 		//wait for signal
 		sigwait(&set, &sig);
 
 		//calculate 
 		printf("Thread 2 calculated : %d\n", val->x + val->y);
 
-		kill(getpid(),SIGUSR2);
+		//signal
+		pthread_kill(val->r,SIGUSR2);
 		
-		//usleep(SLEEP);
-		randomuSleep(val->randomSleep);
+		//sleep
+		//randomuSleep(val->randomSleep);
+		sleep(1);
 	}
+
+	//printf("Goodbye from Thread 2");
 
 	return((void *)NULL);
 }//calculator
 
-static void * control(void *in) {
-	char** argv = in;
+int main(int arc, char *argv[]) {
 	values_t val;
 	sigset_t set;
 
 	sigemptyset(&set);
-	sigset(SIGINT,cancelThread);
+	//sigset(SIGINT,cancelThread);
 
 	//open file
 	val.fp = fopen(argv[1], "r");
 
 	if(val.fp == NULL) {
 		perror("error opening file");
-		return((void *)NULL);
+		return(0);
 	}//ensure file valid
 
 	//init threads
@@ -134,15 +143,5 @@ static void * control(void *in) {
 
 	//close file
 	fclose(val.fp);
-	return((void *)NULL);
-}//control
-
-int main(int arc, char *argv[]) {
-	pthread_t cont_t; //init thread
-
-	pthread_create(&cont_t, NULL, &control, (void *)argv); //create thread
-
-	pthread_join(cont_t, NULL); //start thread
-
 	return(0);
-}
+}//main
