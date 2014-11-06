@@ -10,7 +10,7 @@
 /*
  * Fix how to cancel threads.
  * Fix condition var to end reader loop
- * Figure out how to signal other threads
+ * Looping one too many
  * Wew
  */
 
@@ -43,7 +43,7 @@ static void randomuSleep(int x) {
 }//generates a random uSleep
 
 static void * reader(void *val_in) {
-	sleep(1); //hack to fix seg fault????
+//	sleep(1); //hack to fix seg fault????
 	values_t *val = val_in;
 	val->r = pthread_self();
 	sigset_t set;
@@ -61,6 +61,8 @@ static void * reader(void *val_in) {
 		//print out values to be calculated
 		printf("Thread 1 submitting : %d %d\n", val->x, val->y);
 
+		randomuSleep(val->randomSleep);
+
 		//signal for signal
 		pthread_kill(val->c,SIGUSR1);
 
@@ -69,7 +71,7 @@ static void * reader(void *val_in) {
 
 		//sleep
 		//randomuSleep(val->randomSleep);
-		sleep(1);
+		//sleep(1);
 	}
 
 	//sigwait(&set, &sig);
@@ -102,11 +104,12 @@ static void * calculator(void *val_in) {
 		printf("Thread 2 calculated : %d\n", val->x + val->y);
 
 		//signal
+		randomuSleep(val->randomSleep);
 		pthread_kill(val->r,SIGUSR2);
 		
 		//sleep
 		//randomuSleep(val->randomSleep);
-		sleep(1);
+		//sleep(1);
 	}
 
 	//printf("Goodbye from Thread 2");
