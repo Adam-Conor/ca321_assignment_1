@@ -32,6 +32,10 @@ Program requirements are as follows:
 * The main thread cancels the other threads if a SIGINT is received.<br />
 * Each cancelled thread prints out a farewell message as it exits.<br />
 
+* Provide a brief description of how your solution functions in design.txt. 
+* In problems.txt provide an explanation of any shortcomings or weaknesses in your solution. 
+* Failure to list any shortcomings indicates you are not aware of them and marks will be deducted accordingly.
+
 <h4>Getting started</h4>
 
 The sample code on the course home page will be useful in helping you get started with this assignment. The following are available to you:<br />

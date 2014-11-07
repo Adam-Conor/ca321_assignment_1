@@ -1,4 +1,0 @@
-Signal sends to main, main sends to calc 
-calc read sends signal to main, sends signal to reader
-ends at eof
-ends if SIGINT
