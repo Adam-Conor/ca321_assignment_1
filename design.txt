@@ -1,3 +1,6 @@
+Conor Smyth 12452382
+Adam O'Flynn 12378651
+
 Main opens the file to read and passes the information the struct
 Main thread starts two threads.
 Both threads are given the struct with integer, file and main thread information.

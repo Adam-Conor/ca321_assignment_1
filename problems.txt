@@ -1,2 +1,5 @@
+Conor Smyth 12452382
+Adam O'Flynn 12378651
+
 Shortcomings:
 Our program reads in the last integer and adds them twice.
