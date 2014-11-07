@@ -1,0 +1,1 @@
+./sigcalc numbers.txt
