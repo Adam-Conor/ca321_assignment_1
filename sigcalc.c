@@ -1,3 +1,9 @@
+/*
+ * Conor Smyth 12452382
+ * Adam O'Flynn 12378651
+ * All work is our own
+ */
+
 #include <stdio.h>
 #include <pthread.h>
 #include <signal.h>
@@ -5,11 +11,6 @@
 #include <stdbool.h>
 
 #define SLEEP 10000
-
-/*
- * Looping one too many
- * Wew
- */
 
 static void * reader(void *in);
 static void * calculator(void *in);
@@ -63,7 +64,7 @@ static void * reader(void *val_in) {
 	}//loop until last integer read
 
 	//Goodbye message
-	printf("Goodbye from Thread 1\n");
+	printf("Goodbye from reader thread\n");
 
 	//signal that finished
 	pthread_kill(val->cont, SIGUSR1);
@@ -82,13 +83,16 @@ static void * calculator(void *val_in) {
 	sigaddset(&set, SIGUSR1);
 	sigaddset(&set, SIGUSR2);
 	sigprocmask(SIG_BLOCK, &set, NULL);
-	
+
 	//avoid thread going before ready
 	sigwait(&set, &sig);
 
+	int calculation = 0;
+
 	while(sig != SIGINT) {
 		//calculate 
-		printf("Thread 2 calculated : %d\n", val->x + val->y);
+		calculation = val->x + val->y;
+		printf("Thread 2 calculated : %d\n", calculation);
 
 		//signal
 		pthread_kill(val->cont, SIGUSR2);
@@ -101,7 +105,7 @@ static void * calculator(void *val_in) {
 	}//cancel when SIGINT received
 
 	//Goodbye message
-	printf("Goodbye from Thread 2\n");
+	printf("Goodbye from calculator thread\n");
 
 	return((void *)NULL);
 }//calculator
@@ -123,9 +127,8 @@ int main(int arc, char *argv[]) {
 	//open file
 	val.fp = fopen(argv[1], "r");
 
-	if(val.fp == NULL) {
-		perror("error opening file");
-		printf("usage: \"./sigcalc file\"\n");
+	if(val.fp == NULL || arc != 2) {
+		printf("usage: ./sigcalc file\n");
 		return(0);
 	}//ensure file valid
 
