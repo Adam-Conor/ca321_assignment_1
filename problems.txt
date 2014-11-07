@@ -1,3 +1,2 @@
-Trying to get argv into thread
-trying to get numbers into calc thread
-Trying to send signal
+Shortcomings:
+Our program reads in the last integer and adds them twice.
