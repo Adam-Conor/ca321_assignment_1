@@ -6,7 +6,6 @@
 
 #define SLEEP 10000
 
-/* TODO */
 /*
  * Looping one too many
  * Wew
@@ -15,7 +14,7 @@
 static void * reader(void *in);
 static void * calculator(void *in);
 
-//struct to hold data
+//struct to hold global data
 typedef struct {
 	int x;
 	int y;
@@ -23,11 +22,6 @@ typedef struct {
 	pthread_t cont;
 	int randomSleep;
 } values_t;
-
-static void cancelled() {
-	printf("SIGINT received.");
-	//pthread_kill(pthread_self());
-}
 
 static void getRandomSleep(int* x) {
 	srand(time(NULL));
@@ -59,20 +53,20 @@ static void * reader(void *val_in) {
 		printf("Thread 1 submitting : %d %d\n", val->x, val->y);
 
 		//signal for signal
-		pthread_kill(val->cont,SIGUSR1);
+		pthread_kill(val->cont, SIGUSR1);
 
 		//wait
 		sigwait(&set, &sig);
 
 		//sleep
 		randomuSleep(val->randomSleep);
-	}
+	}//loop until last integer read
 
 	//Goodbye message
 	printf("Goodbye from Thread 1\n");
 
 	//signal that finished
-	pthread_kill(val->cont,SIGUSR1);
+	pthread_kill(val->cont, SIGUSR1);
 
 	return((void *)NULL);
 }//reader
@@ -97,7 +91,7 @@ static void * calculator(void *val_in) {
 		printf("Thread 2 calculated : %d\n", val->x + val->y);
 
 		//signal
-		pthread_kill(val->cont,SIGUSR2);
+		pthread_kill(val->cont, SIGUSR2);
 
 		//wait for numbers
 		sigwait(&set, &sig);
@@ -108,9 +102,6 @@ static void * calculator(void *val_in) {
 
 	//Goodbye message
 	printf("Goodbye from Thread 2\n");
-
-	//signal that finished
-	pthread_kill(val->cont,SIGUSR2);
 
 	return((void *)NULL);
 }//calculator
@@ -124,7 +115,6 @@ int main(int arc, char *argv[]) {
 	sigemptyset(&set);
 	sigaddset(&set, SIGUSR1);
 	sigaddset(&set, SIGUSR2);
-	//sigset(SIGINT,cancelled);
 	sigprocmask(SIG_BLOCK, &set, NULL);
 
 	//set main thread ID for child threads
@@ -147,17 +137,21 @@ int main(int arc, char *argv[]) {
 	pthread_create(&read_t, NULL, &reader, (void *)&val);
 	pthread_create(&calc_t, NULL, &calculator, (void *)&val);
 
-
 	while(!feof(val.fp)) {
+		//wait for reader to read integer
 		sigwait(&set, &sig);
 
+		//signal integer read
 		pthread_kill(calc_t, SIGUSR1);
 
+		//wait for calculation to complete
 		sigwait(&set, &sig);
 
+		//signal to read another integer
 		pthread_kill(read_t, SIGUSR2);
 	}//continue until end of file
 
+	//cancel threads
 	pthread_kill(read_t, SIGINT);
 	sigwait(&set, &sig);
 	pthread_kill(calc_t, SIGINT);
@@ -165,7 +159,10 @@ int main(int arc, char *argv[]) {
 	pthread_join(read_t, NULL);
 	pthread_join(calc_t, NULL);
 
+	pthread_exit(NULL);
+
 	//close file
 	fclose(val.fp);
+
 	return(0);
 }//main
