@@ -1,0 +1,14 @@
+Main opens the file to read and passes the information the struct
+Main thread starts two threads.
+Both threads are given the struct with integer, file and main thread information.
+Main then waits for the reader thread to signal that two integers have been read.
+Reader signals main that two integers have been read.
+Main then signals the calculator thread that there are integers to be added.
+Calculator signals main that the two integers have been added and printed.
+Main now signals to reader that it is time to read two more integers.
+This repeats until the main reaches end of file.
+Main signals readers that it's time to stop reading integers.
+Reader prints a goodbye messaege and signals main that it has exited.
+Main now signals calculator that there are no more integers to be added.
+Calculator prints a goodbye messaege and exits.
+Main exits.
